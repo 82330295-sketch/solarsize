@@ -1,30 +1,61 @@
-// This is a basic Flutter widget test.
-//
-// To perform an interaction with a widget in your test, use the WidgetTester
-// utility in the flutter_test package. For example, you can send tap and scroll
-// gestures. You can also use WidgetTester to find child widgets in the widget
-// tree, read text, and verify that the values of widget properties are correct.
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
-
 import 'package:solarsize/main.dart';
 
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('shows the starter results', (tester) async {
     await tester.pumpWidget(const MyApp());
 
-    // Verify that our counter starts at 0.
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
+    expect(find.text('SolarSize'), findsOneWidget);
+    expect(find.text('Fridge'), findsOneWidget);
+    expect(find.text('3 kVA'), findsOneWidget);
+    expect(find.text('≈ \$1,750'), findsOneWidget);
+  });
 
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
+  testWidgets('adding an air conditioner updates the results', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Add'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Air conditioner'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('5 kVA'), findsOneWidget);
+    expect(find.text('≈ \$2,910'), findsOneWidget);
+  });
+
+  testWidgets('unchecking installation lowers the cost', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    expect(find.text('≈ \$1,520'), findsOneWidget);
+
+    await tester.tap(find.byType(Checkbox));
+    await tester.pump();
+    expect(find.text('≈ \$1,750'), findsOneWidget);
+  });
+
+  testWidgets('minus on a single item removes it', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    // the fridge is the first tile and its quantity is 1
+    await tester.tap(find.byIcon(Icons.remove).first);
     await tester.pump();
 
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    expect(find.text('Fridge'), findsNothing);
+    expect(find.text('Fridge removed'), findsOneWidget);
+  });
+
+  testWidgets('changing the hours of an appliance', (tester) async {
+    await tester.pumpWidget(const MyApp());
+
+    await tester.tap(find.text('Fridge'));
+    await tester.pumpAndSettle();
+    expect(find.text('How many hours a day is it on?'), findsOneWidget);
+    await tester.tap(find.text('Save'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('How many hours a day is it on?'), findsNothing);
   });
 }
